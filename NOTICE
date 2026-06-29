@@ -1,0 +1,47 @@
+liuyao-engine
+Copyright 2026 Jincheng Xie
+by Yaomancy · https://yaomancy.com
+
+Licensed under the Apache License, Version 2.0 (the "LICENSE" file).
+
+This product includes third-party software and data distributed under the
+MIT License. Full upstream license texts are reproduced under licenses/.
+
+------------------------------------------------------------------------
+1. yigram-najia-rules — MIT
+   Copyright (c) 2026 Adrien Deng (YiGram)
+   https://github.com/AdrienSterling/yigram-najia-rules
+   The bundled file data/yigram-najia-tables.json is derived from this
+   project's tables.json (najia stem-branch / six-relations / void /
+   palace-element / branch-element / shi-ying tables, used here as a
+   cross-validation reference). Full license: licenses/yigram-najia-rules-LICENSE.txt
+
+2. najia — MIT
+   Copyright (c) 2019, najia
+   https://github.com/bopo/najia
+   Used as the primary differential oracle for cross-validation
+   (tests/test_differential.py). This engine's lookup tables (stem-branch,
+   six-relations, six-spirits, shi-ying, void, palace-element, branch-element)
+   were cross-checked against najia and found consistent.
+   Full license: licenses/najia-LICENSE.txt
+
+------------------------------------------------------------------------
+Runtime / development dependencies (MIT, installed via pip, licenses ship
+with their own packages — acknowledged here):
+
+3. sxtwl — MIT — calendar (ganzhi / solar terms) runtime dependency
+   https://github.com/yuangu/sxtwl_cpp
+
+4. lunar-python — MIT — calendar cross-validation (dev) dependency
+   https://github.com/6tail/lunar-python
+
+------------------------------------------------------------------------
+Classical source texts (public domain):
+《卜筮正宗》(Qing dynasty, Wang Hongxu) and 《增删卜易》(Qing dynasty,
+Yehe Laoren / Li Wenhui). The bundled data/*.txt are verbatim public-domain
+full texts extracted by ctext.org (中国哲学书电子化计划); source attributed
+per ctext terms. Modern collated/annotated editions are NOT included.
+
+Methodology (constitution): hexagram construction follows 《卜筮正宗》,
+divination follows 《增删卜易》; shensha are excluded from core logic;
+schools are not mixed.

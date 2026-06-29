@@ -1,0 +1,420 @@
+{
+  "_attribution": "Derived from yigram-najia-rules (MIT) by Adrien Deng (YiGram), https://github.com/AdrienSterling/yigram-najia-rules. See NOTICE and licenses/yigram-najia-rules-LICENSE.txt.",
+  "version": "0.1.0",
+  "audit_status": "unaudited_draft",
+  "source_policy": "卜筮正宗 skeleton; cross-checked vs 增删卜易 + 黄金策",
+  "casting_probability": {
+    "6": "1/8",
+    "7": "3/8",
+    "8": "3/8",
+    "9": "1/8"
+  },
+  "najia_branch": {
+    "qian": {
+      "1": "zi",
+      "2": "yin",
+      "3": "chen",
+      "4": "wu",
+      "5": "shen",
+      "6": "xu"
+    },
+    "kun": {
+      "1": "wei",
+      "2": "si",
+      "3": "mao",
+      "4": "chou",
+      "5": "hai",
+      "6": "you"
+    },
+    "zhen": {
+      "1": "zi",
+      "2": "yin",
+      "3": "chen",
+      "4": "wu",
+      "5": "shen",
+      "6": "xu"
+    },
+    "xun": {
+      "1": "chou",
+      "2": "hai",
+      "3": "you",
+      "4": "wei",
+      "5": "si",
+      "6": "mao"
+    },
+    "kan": {
+      "1": "yin",
+      "2": "chen",
+      "3": "wu",
+      "4": "shen",
+      "5": "xu",
+      "6": "zi"
+    },
+    "li": {
+      "1": "mao",
+      "2": "chou",
+      "3": "hai",
+      "4": "you",
+      "5": "wei",
+      "6": "si"
+    },
+    "gen": {
+      "1": "chen",
+      "2": "wu",
+      "3": "shen",
+      "4": "xu",
+      "5": "zi",
+      "6": "yin"
+    },
+    "dui": {
+      "1": "si",
+      "2": "mao",
+      "3": "chou",
+      "4": "hai",
+      "5": "you",
+      "6": "wei"
+    }
+  },
+  "branch_element": {
+    "zi": "water",
+    "chou": "earth",
+    "yin": "wood",
+    "mao": "wood",
+    "chen": "earth",
+    "si": "fire",
+    "wu": "fire",
+    "wei": "earth",
+    "shen": "metal",
+    "you": "metal",
+    "xu": "earth",
+    "hai": "water"
+  },
+  "palace_element": {
+    "qian": "metal",
+    "dui": "metal",
+    "li": "fire",
+    "zhen": "wood",
+    "xun": "wood",
+    "kan": "water",
+    "gen": "earth",
+    "kun": "earth"
+  },
+  "shi_ying_by_generation": {
+    "0": [
+      6,
+      3
+    ],
+    "1": [
+      1,
+      4
+    ],
+    "2": [
+      2,
+      5
+    ],
+    "3": [
+      3,
+      6
+    ],
+    "4": [
+      4,
+      1
+    ],
+    "5": [
+      5,
+      2
+    ],
+    "6": [
+      4,
+      1
+    ],
+    "7": [
+      3,
+      6
+    ]
+  },
+  "generation_names": {
+    "0": "native",
+    "1": "first_generation",
+    "2": "second_generation",
+    "3": "third_generation",
+    "4": "fourth_generation",
+    "5": "fifth_generation",
+    "6": "wandering_soul",
+    "7": "returning_soul"
+  },
+  "use_spirit_default": {
+    "career": "officer_ghost",
+    "business": "wealth",
+    "finance": "wealth",
+    "health": "officer_ghost",
+    "relationship": null,
+    "life": null,
+    "other": null
+  },
+  "palace_by_hexagram": {
+    "111111": {
+      "palace": "qian",
+      "generation_index": 0
+    },
+    "011111": {
+      "palace": "qian",
+      "generation_index": 1
+    },
+    "001111": {
+      "palace": "qian",
+      "generation_index": 2
+    },
+    "000111": {
+      "palace": "qian",
+      "generation_index": 3
+    },
+    "000011": {
+      "palace": "qian",
+      "generation_index": 4
+    },
+    "000001": {
+      "palace": "qian",
+      "generation_index": 5
+    },
+    "000101": {
+      "palace": "qian",
+      "generation_index": 6
+    },
+    "111101": {
+      "palace": "qian",
+      "generation_index": 7
+    },
+    "000000": {
+      "palace": "kun",
+      "generation_index": 0
+    },
+    "100000": {
+      "palace": "kun",
+      "generation_index": 1
+    },
+    "110000": {
+      "palace": "kun",
+      "generation_index": 2
+    },
+    "111000": {
+      "palace": "kun",
+      "generation_index": 3
+    },
+    "111100": {
+      "palace": "kun",
+      "generation_index": 4
+    },
+    "111110": {
+      "palace": "kun",
+      "generation_index": 5
+    },
+    "111010": {
+      "palace": "kun",
+      "generation_index": 6
+    },
+    "000010": {
+      "palace": "kun",
+      "generation_index": 7
+    },
+    "100100": {
+      "palace": "zhen",
+      "generation_index": 0
+    },
+    "000100": {
+      "palace": "zhen",
+      "generation_index": 1
+    },
+    "010100": {
+      "palace": "zhen",
+      "generation_index": 2
+    },
+    "011100": {
+      "palace": "zhen",
+      "generation_index": 3
+    },
+    "011000": {
+      "palace": "zhen",
+      "generation_index": 4
+    },
+    "011010": {
+      "palace": "zhen",
+      "generation_index": 5
+    },
+    "011110": {
+      "palace": "zhen",
+      "generation_index": 6
+    },
+    "100110": {
+      "palace": "zhen",
+      "generation_index": 7
+    },
+    "011011": {
+      "palace": "xun",
+      "generation_index": 0
+    },
+    "111011": {
+      "palace": "xun",
+      "generation_index": 1
+    },
+    "101011": {
+      "palace": "xun",
+      "generation_index": 2
+    },
+    "100011": {
+      "palace": "xun",
+      "generation_index": 3
+    },
+    "100111": {
+      "palace": "xun",
+      "generation_index": 4
+    },
+    "100101": {
+      "palace": "xun",
+      "generation_index": 5
+    },
+    "100001": {
+      "palace": "xun",
+      "generation_index": 6
+    },
+    "011001": {
+      "palace": "xun",
+      "generation_index": 7
+    },
+    "010010": {
+      "palace": "kan",
+      "generation_index": 0
+    },
+    "110010": {
+      "palace": "kan",
+      "generation_index": 1
+    },
+    "100010": {
+      "palace": "kan",
+      "generation_index": 2
+    },
+    "101010": {
+      "palace": "kan",
+      "generation_index": 3
+    },
+    "101110": {
+      "palace": "kan",
+      "generation_index": 4
+    },
+    "101100": {
+      "palace": "kan",
+      "generation_index": 5
+    },
+    "101000": {
+      "palace": "kan",
+      "generation_index": 6
+    },
+    "010000": {
+      "palace": "kan",
+      "generation_index": 7
+    },
+    "101101": {
+      "palace": "li",
+      "generation_index": 0
+    },
+    "001101": {
+      "palace": "li",
+      "generation_index": 1
+    },
+    "011101": {
+      "palace": "li",
+      "generation_index": 2
+    },
+    "010101": {
+      "palace": "li",
+      "generation_index": 3
+    },
+    "010001": {
+      "palace": "li",
+      "generation_index": 4
+    },
+    "010011": {
+      "palace": "li",
+      "generation_index": 5
+    },
+    "010111": {
+      "palace": "li",
+      "generation_index": 6
+    },
+    "101111": {
+      "palace": "li",
+      "generation_index": 7
+    },
+    "001001": {
+      "palace": "gen",
+      "generation_index": 0
+    },
+    "101001": {
+      "palace": "gen",
+      "generation_index": 1
+    },
+    "111001": {
+      "palace": "gen",
+      "generation_index": 2
+    },
+    "110001": {
+      "palace": "gen",
+      "generation_index": 3
+    },
+    "110101": {
+      "palace": "gen",
+      "generation_index": 4
+    },
+    "110111": {
+      "palace": "gen",
+      "generation_index": 5
+    },
+    "110011": {
+      "palace": "gen",
+      "generation_index": 6
+    },
+    "001011": {
+      "palace": "gen",
+      "generation_index": 7
+    },
+    "110110": {
+      "palace": "dui",
+      "generation_index": 0
+    },
+    "010110": {
+      "palace": "dui",
+      "generation_index": 1
+    },
+    "000110": {
+      "palace": "dui",
+      "generation_index": 2
+    },
+    "001110": {
+      "palace": "dui",
+      "generation_index": 3
+    },
+    "001010": {
+      "palace": "dui",
+      "generation_index": 4
+    },
+    "001000": {
+      "palace": "dui",
+      "generation_index": 5
+    },
+    "001100": {
+      "palace": "dui",
+      "generation_index": 6
+    },
+    "110100": {
+      "palace": "dui",
+      "generation_index": 7
+    }
+  },
+  "six_relative_rule": {
+    "generates_self": "parents",
+    "self_generates": "offspring",
+    "self_controls": "wealth",
+    "controls_self": "officer_ghost",
+    "same": "siblings"
+  }
+}
