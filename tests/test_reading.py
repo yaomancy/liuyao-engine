@@ -2,10 +2,16 @@
 
 旺衰按月令规则计算（修正了 06 契约示例中的占位错值）。
 """
+from dataclasses import replace
+
+import pytest
+
 from liuyao.analysis import (
     CATEGORY_TO_YONGSHEN,
     _huitou,
     _resolve_liang_xian,
+    force_entry,
+    fushen_force,
     select_yongshen,
     wangshuai,
 )
@@ -110,8 +116,6 @@ def test_andong_jingyao_richong():
 
 def test_andong_excludes_fadong():
     """规则：发动之爻不算暗动（andong = 日冲 且 非发动）。"""
-    from liuyao.analysis import force_entry
-    from liuyao.hexagram import cast_chart, GAN
     chart = cast_chart("111111", GAN.index("庚"))   # 乾为天
     # 五爻兄弟申，日辰寅(冲申)；令其发动 → 应为发动而非暗动
     e = force_entry(chart, 5, "兄弟", month_branch=8, day_zhi=2,
@@ -134,3 +138,80 @@ def test_build_reading_gou_fushen_bian():
     # 伏神挂在飞神二爻（辛亥）下
     line2 = r["primary"]["lines"][1]
     assert line2["伏神"] is not None and line2["伏神"]["najia"] == "甲寅"
+    # 用神伏藏：position 为 None（不在可见卦面），不是把 None 当爻位去算。
+    assert r["assessment"]["用神"]["position"] is None
+    assert r["assessment"]["用神"]["伏藏"] is True
+
+
+def _ying_line(chart):
+    return next(y for y in chart.yaos if y.shiying == "应")
+
+
+def _without_ying(chart):
+    """去掉应爻标记，保留其余装卦结果，用来覆盖缺应爻的失败路径。"""
+    return replace(
+        chart,
+        yaos=tuple(
+            replace(y, shiying=None) if y.shiying == "应" else y for y in chart.yaos
+        ),
+    )
+
+
+@pytest.mark.parametrize("category", ["方案占", "谋望"])
+def test_ying_as_yongshen_uses_ying_line(category):
+    """方案占/谋望以应爻为用神之纲：取应爻六亲与爻位，不伏藏。"""
+    fp = _fp("丙申", "庚寅", ("午", "未"))
+    chart = cast_chart("111111", fp.day.gan)
+    ying = _ying_line(chart)
+    ys = select_yongshen(
+        chart, category, fp.month.zhi, fp.day.zhi, fp.xunkong, set(), fp.day.gan,
+    )
+    assert ys == {
+        "liuqin": ying.liuqin,
+        "positions": [ying.position],
+        "chosen": ying.position,
+        "两现": False,
+        "伏藏": False,
+        "应爻为纲": True,
+    }
+
+    reading = build_reading(
+        category=category, text="此方案可否", bits="111111",
+        moving={}, four_pillars=fp,
+    )
+    assert reading["yongShen"]["chosen"] == ying.position
+    assert reading["yongShen"]["应爻为纲"] is True
+    assert reading["assessment"]["用神"]["position"] == ying.position
+    assert reading["assessment"]["用神"]["liuQin"] == ying.liuqin
+
+
+@pytest.mark.parametrize("category", ["方案占", "谋望"])
+def test_ying_as_yongshen_missing_ying_raises(category, monkeypatch):
+    """卦盘没有应爻时明确报错，而不是对 None 做减法（TypeError）。"""
+    fp = _fp("丙申", "庚寅", ("午", "未"))
+    broken = _without_ying(cast_chart("111111", fp.day.gan))
+    with pytest.raises(ValueError, match="缺少应爻"):
+        select_yongshen(
+            broken, category, fp.month.zhi, fp.day.zhi, fp.xunkong, set(), fp.day.gan,
+        )
+
+    monkeypatch.setattr("liuyao.reading.cast_chart", lambda bits, day_gan: broken)
+    with pytest.raises(ValueError, match="缺少应爻"):
+        build_reading(
+            category=category, text="缺应", bits="111111",
+            moving={}, four_pillars=fp,
+        )
+
+
+def test_fushen_force_hidden_position_is_none():
+    """伏藏用神不在可见卦面：position=None 被接受，且不计发动/回头/暗动。"""
+    # 申月(8)金令，伏神寅木 → 死。
+    entry = fushen_force(
+        "木", "寅", "妻财", None, month_branch=8, day_zhi=2, xunkong=(6, 7),
+    )
+    assert entry.position is None
+    assert entry.liuqin == "妻财"
+    assert entry.wangshuai == "死"
+    assert entry.fadong is False
+    assert entry.huitou is None
+    assert entry.andong is False

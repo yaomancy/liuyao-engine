@@ -3,10 +3,18 @@ __pycache__/
 *.pyc
 *.egg-info/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 build/
 dist/
 .venv/
+.v/
 venv/
+
+# hatch-vcs writes this during an editable install / build
+liuyao/_version.py
 
 # OS
 .DS_Store

@@ -149,10 +149,14 @@ def compute_four_pillars(
     )
     civil = sxtwl.fromSolar(bj.year, bj.month, bj.day)
     ym_day = civil
-    if civil.hasJieQi() and civil.getJieQi() % 2 == 1:
-        if _to_jd(bj.year, bj.month, bj.day, bj.hour, bj.minute) < civil.getJieQiJD():
-            prev = bj.date() - datetime.timedelta(days=1)
-            ym_day = sxtwl.fromSolar(prev.year, prev.month, prev.day)
+    # 节气当日且交节时刻尚未到 → 年/月柱仍属上一节气。短路求值与原先嵌套 if 相同。
+    if (
+        civil.hasJieQi()
+        and civil.getJieQi() % 2 == 1
+        and _to_jd(bj.year, bj.month, bj.day, bj.hour, bj.minute) < civil.getJieQiJD()
+    ):
+        prev = bj.date() - datetime.timedelta(days=1)
+        ym_day = sxtwl.fromSolar(prev.year, prev.month, prev.day)
     y_gz, m_gz = ym_day.getYearGZ(), ym_day.getMonthGZ()
 
     return FourPillars(

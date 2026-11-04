@@ -1,5 +1,4 @@
 """卦页事实与 slug 映射单测（§1）。"""
-from liuyao.guaxiang import GUAXIANG
 from liuyao.gua_page import gua_page_facts
 from liuyao.gua_slug import (
     GUA_SLUG,
@@ -7,6 +6,7 @@ from liuyao.gua_slug import (
     bits_to_slug,
     slug_to_bits,
 )
+from liuyao.guaxiang import GUAXIANG
 from liuyao.hexagram import GUA64, cast_chart
 
 _QIAN = "111111"  # 乾为天

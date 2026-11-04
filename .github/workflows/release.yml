@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  push:
+    tags:
+      # GitHub tag filters are globs, not regex. v1.2.3 / v1.2.3rc1 both match.
+      - "v[0-9]*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install, lint, and test
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" build
+          ruff check .
+          mypy liuyao
+          pytest
+      - name: Build sdist and wheel
+        run: python -m build
+      - name: Require the tag version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+
+          tag = os.environ["RELEASE_TAG"]
+          if not tag.startswith("v") or not tag[1:2].isdigit():
+              raise SystemExit(f"tag {tag!r} must look like vX.Y.Z")
+          version = tag[1:]
+          dist = pathlib.Path("dist")
+          wheels = sorted(dist.glob("*.whl"))
+          sdists = sorted(dist.glob("*.tar.gz"))
+          if len(wheels) != 1 or len(sdists) != 1:
+              names = sorted(p.name for p in dist.iterdir())
+              raise SystemExit(f"expected one wheel and one sdist, found {names}")
+          expected = {
+              wheels[0].name: f"liuyao_engine-{version}-py3-none-any.whl",
+              sdists[0].name: f"liuyao_engine-{version}.tar.gz",
+          }
+          for actual, want in expected.items():
+              if actual != want:
+                  raise SystemExit(
+                      f"{actual} does not match tag {tag} (expected {want}). "
+                      "Tag the exact commit being released; hatch-vcs reads the version from that tag."
+                  )
+          print(f"distributions match {version}")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/liuyao-engine
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Publish via Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release create "${GITHUB_REF_NAME}" dist/*
+          --title "${GITHUB_REF_NAME}"
+          --generate-notes

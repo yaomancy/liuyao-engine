@@ -73,14 +73,18 @@ def _csprng_coin(entropy: bytes) -> int:
     return fresh[0] & 1
 
 
+def _three_coins(entropy: bytes) -> tuple[int, int, int]:
+    """三枚 CSPRNG 铜钱。写成定长元组，避免被推断成 tuple[int, ...]。"""
+    return (_csprng_coin(entropy), _csprng_coin(entropy), _csprng_coin(entropy))
+
+
 def toss_line(entropy: bytes | None = None) -> tuple[tuple[int, int, int], str, str | None]:
     """摇一爻：三枚 CSPRNG 铜钱 → (coins, 阴阳位 '1'/'0', 动爻类型或 None)。
 
     逐爻起卦（/cast_line）专用：与 toss() 同一随机源、同一分布，仅一次产一爻。
     交互熵混入但不决定结果（最终由 CSPRNG 保证 1/8:3/8:3/8:1/8 公平）。
     """
-    ent = entropy or b""
-    coins = tuple(_csprng_coin(ent) for _ in range(3))
+    coins = _three_coins(entropy or b"")
     bit, mv = yao_from_coins(coins)
     return coins, bit, mv
 
@@ -92,8 +96,6 @@ def toss(entropy: bytes | None = None) -> CastResult:
              不决定结果（最终由 CSPRNG 保证公平）。
     """
     ent = entropy or b""
-    tosses = tuple(
-        tuple(_csprng_coin(ent) for _ in range(3)) for _ in range(6)
-    )
+    tosses = tuple(_three_coins(ent) for _ in range(6))
     bits, moving = lines_from_tosses(tosses)
     return CastResult(bits=bits, moving=moving, tosses=tosses)

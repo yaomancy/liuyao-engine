@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 from .analysis import (
-    CATEGORY_TO_YONGSHEN,
     ForceEntry,
     feifu,
     force_entry,
@@ -15,13 +14,13 @@ from .analysis import (
     select_yongshen,
     yao_flags,
 )
-from .calendar import GAN, ZHI, FourPillars
-from .guaxiang import get_xiangyi
+from .calendar import ZHI, FourPillars
 from .gua_slug import bits_to_slug
+from .guaxiang import get_xiangyi
 from .hexagram import (
-    HexagramChart,
     _KE,
     _SHENG,
+    HexagramChart,
     _liuqin,
     cast_chart,
 )
