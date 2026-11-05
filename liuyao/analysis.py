@@ -11,14 +11,13 @@ from dataclasses import dataclass
 
 from .calendar import ZHI
 from .hexagram import (
-    HexagramChart,
-    Yao,
     _KE,
     _SHENG,
     ZHI_WUXING,
-    cast_chart,
+    HexagramChart,
     find_fushen,
 )
+
 
 # ── 五行旺相休囚死（以月令为基准）──────────────────────────
 def wangshuai(yao_wx: str, month_wx: str) -> str:
@@ -172,11 +171,14 @@ def feifu(fei_wx: str, fu_wx: str) -> str:
     return "飞伏比和"
 
 
-def fushen_force(fu_wx: str, fu_zhi: str, liuqin: str, position: int,
+def fushen_force(fu_wx: str, fu_zhi: str, liuqin: str, position: int | None,
                  month_branch: int, day_zhi: int,
                  xunkong: tuple[int, int]) -> ForceEntry:
     """伏神力量事实（engine-feifu）：旺衰按月令、得日/旬空/月破/日冲同既有算法。
-    伏神不上卦面，不计发动/回头/暗动（fadong/huitou/andong 恒为否）。"""
+
+    position 为飞神爻位。用神评估的 position 恒指「该六亲所在可见爻」；
+    伏神不上卦面，故伏藏时传 None。不计发动/回头/暗动（恒为否）。
+    """
     zi = ZHI.index(fu_zhi)
     month_wx = _branch_wx(month_branch)
     day_wx = _branch_wx(day_zhi)
@@ -208,7 +210,10 @@ def select_yongshen(
     """返回 {liuqin, positions, chosen, 两现, 伏藏, fushen?, 应爻为纲?}。"""
     # 方案占/谋望：以应爻为用神之纲（应代表所谋之事/彼方）。应爻恒上卦，无伏藏。
     if category in YING_AS_YONGSHEN:
+        # 应爻由装卦写入。找不到时明确失败，避免把 None 拿去减 1。
         yp = next((y.position for y in chart.yaos if y.shiying == "应"), None)
+        if yp is None:
+            raise ValueError(f"卦盘缺少应爻，无法以应爻为用神之纲: {category}")
         ying = chart.yaos[yp - 1]
         return {"liuqin": ying.liuqin, "positions": [yp], "chosen": yp,
                 "两现": False, "伏藏": False, "应爻为纲": True}
@@ -238,7 +243,6 @@ def select_yongshen(
 def _resolve_liang_xian(chart, positions, month_branch, day_zhi, xunkong, moving):
     """两现取一优先级：①动 ②空破 ③临世应 ④得月日生扶 ⑤近世爻。"""
     po = _chong(month_branch)
-    chong = _chong(day_zhi)
     month_wx = _branch_wx(month_branch)
     day_wx = _branch_wx(day_zhi)
 

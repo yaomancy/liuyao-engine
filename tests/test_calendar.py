@@ -5,7 +5,6 @@
 from liuyao.calendar import (
     GAN,
     ZHI,
-    FourPillars,
     GanZhi,
     compute_four_pillars,
 )

@@ -7,11 +7,29 @@ on:
     branches: [main]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Ruff
+        run: ruff check .
+      - name: Mypy
+        run: mypy liuyao
+
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -23,4 +41,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
       - name: Run tests (incl. najia differential cross-validation)
-        run: pytest -q
+        run: pytest

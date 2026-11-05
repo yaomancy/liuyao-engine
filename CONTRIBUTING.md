@@ -5,8 +5,10 @@
 ## 跑测试 / Run tests
 
 ```bash
-pip install -e ".[dev]"   # sxtwl + pytest + lunar-python + najia
-pytest -q                 # 全套，含对 najia 的差分校验
+pip install -e ".[dev]"   # sxtwl + pytest + lunar-python + najia + ruff + mypy
+pytest                    # 全套，含对 najia 的差分校验与覆盖率门槛
+ruff check .
+mypy liuyao
 ```
 
 ## 红线 / Hard rules

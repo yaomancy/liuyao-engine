@@ -23,7 +23,7 @@
 pip install git+https://github.com/yaomancy/liuyao-engine
 ```
 
-依赖：仅 `sxtwl`（历法）。Python ≥ 3.11。
+依赖：仅 `sxtwl`（历法）。Python ≥ 3.11（CI 覆盖 3.11 / 3.12 / 3.13）。
 
 ## 30 秒上手 / Killer example
 
@@ -58,7 +58,9 @@ print(reading.keys())
 
 ```bash
 pip install -e ".[dev]"
-pytest          # 含对 najia 的差分校验
+pytest          # 含对 najia 的差分校验，覆盖率门槛 90%
+ruff check .
+mypy liuyao
 ```
 
 想看它跑在真实产品里？→ **[yaomancy.com](https://yaomancy.com)**
@@ -75,7 +77,7 @@ pytest          # 含对 najia 的差分校验
 liuyao/        引擎包（11 模块：calendar/cast/hexagram/relations/analysis/reading/…）
 tests/         引擎测试 + test_differential（对 najia 交叉验证）
 cases/         锚点卦例：hexagram-json-contract.md（卦盘 JSON 契约）/ regression-cases-draft.md
-data/          审计参考：真值表 yigram-najia-tables.json、术语 liuyao-glossary.json、ctext 公有领域古籍全文
+data/          审计参考：真值表 yigram-najia-tables.json、术语 liuyao-glossary.json、ctext 公有领域古籍全文（全文不打进 sdist/wheel）
 LICENSE NOTICE licenses/    Apache-2.0 + 第三方/古籍署名
 ```
 

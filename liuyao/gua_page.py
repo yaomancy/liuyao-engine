@@ -9,15 +9,15 @@ day-干说明：纳甲(gan/zhi)、五行、六亲、世应均为卦象固有，�
 """
 from __future__ import annotations
 
+from .gua_slug import bits_to_slug
 from .guaxiang import get_xiangyi
 from .hexagram import (
+    _PALACE_TABLE,
     GUA64,
     PALACE_WUXING,
     TRIGRAM_NAME,
-    _PALACE_TABLE,
     cast_chart,
 )
-from .gua_slug import bits_to_slug
 
 # 八宫陈列次序（与 guaxiang.py 分组一致）与卦型次序（京房八宫卦序）
 _PALACE_ORDER = ["乾", "坎", "艮", "震", "巽", "离", "坤", "兑"]
@@ -74,8 +74,8 @@ def gua_index_items() -> list[tuple[str, str, list[dict]]]:
         groups[palace].append(
             {"name": name, "slug": bits_to_slug(bits), "gua_type": gua_type, "bits": bits}
         )
-    for p in groups:
-        groups[p].sort(key=lambda d: _TYPE_ORDER[d["gua_type"]])
+    for items in groups.values():
+        items.sort(key=lambda d: _TYPE_ORDER[d["gua_type"]])
     return [(p, PALACE_WUXING[p], groups[p]) for p in _PALACE_ORDER]
 
 
