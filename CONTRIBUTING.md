@@ -11,8 +11,6 @@ ruff check .
 mypy liuyao
 ```
 
-版本号来自 git 标签（hatch-vcs）。可编辑安装会生成被 gitignore 的 `liuyao/_version.py`，克隆后请先安装再导入。
-
 ## 红线 / Hard rules
 
 1. **改动引擎逻辑必须过锚点卦例与差分校验**：任何触及装卦 / 纳甲 / 六亲 / 世应 / 伏神 / 旺衰 / 历法的改动，`tests/test_differential.py`（对 najia 交叉验证）与 `cases/`（锚点卦例）必须全绿。算错即回退。

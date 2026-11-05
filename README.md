@@ -20,8 +20,6 @@
 ## 安装 / Install
 
 ```bash
-pip install liuyao-engine
-# 尚未发布到 PyPI 时：
 pip install git+https://github.com/yaomancy/liuyao-engine
 ```
 
@@ -66,26 +64,6 @@ mypy liuyao
 ```
 
 想看它跑在真实产品里？→ **[yaomancy.com](https://yaomancy.com)**
-
-## 发布 / Release
-
-版本号不写在 `pyproject.toml` 里，由 **hatch-vcs** 从 git 标签派生（`vX.Y.Z` → `X.Y.Z`）。在要发布的提交上打标签并推送后，[`.github/workflows/release.yml`](.github/workflows/release.yml) 会跑检查与测试、构建 sdist/wheel（版本必须与标签一致）、用 **PyPI Trusted Publishing** 上传，并创建附带构建产物的 GitHub Release。仓库里没有、也不应添加 PyPI API token；上传凭据是 GitHub Actions 的 OIDC 身份。
-
-```bash
-git tag v0.1.1
-git push origin v0.1.1
-```
-
-**维护者必须先在 PyPI 配好 Trusted Publisher，否则这个工作流无法上传。** 项目还不存在时，在 PyPI 的 publishing 设置里添加 pending publisher，第一次成功发布后会绑定到 `liuyao-engine`：
-
-| 字段 | 值 |
-|---|---|
-| Owner | `yaomancy` |
-| Repository name | `liuyao-engine` |
-| Workflow name | `release.yml` |
-| Environment name | `pypi` |
-
-GitHub 仓库 Settings → Environments 里要有同名的 `pypi` environment（可加 required reviewers）。PyPI 上的 environment 名称必须与工作流里的 `environment: pypi` 一致，否则 OIDC 会被拒绝。
 
 ## 设计取舍 / Design rationale
 

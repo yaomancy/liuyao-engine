@@ -17,7 +17,6 @@
 """
 from __future__ import annotations
 
-from ._version import __version__
 from .calendar import (
     FourPillars,
     GanZhi,
@@ -28,6 +27,8 @@ from .calendar import (
 from .cast import CastResult, lines_from_tosses, toss, toss_line, yao_from_coins
 from .hexagram import GUA64, HexagramChart, Yao, cast_chart, find_fushen
 from .reading import build_reading
+
+__version__ = "0.1.0"
 
 __all__ = [
     # 起卦

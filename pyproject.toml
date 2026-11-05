@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling>=1.27", "hatch-vcs>=0.4"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
 name = "liuyao-engine"
-dynamic = ["version"]
+version = "0.1.0"
 description = "Deterministic I Ching (Liu Yao) hexagram engine — 六爻装卦/断法/历法确定性引擎，与 najia 交叉验证"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -41,14 +41,6 @@ dev = [
 [project.urls]
 Homepage = "https://yaomancy.com"
 Repository = "https://github.com/yaomancy/liuyao-engine"
-
-# 版本取自 git 标签（vX.Y.Z → X.Y.Z）。发布时在该提交上打标签即可，不要手写 version。
-[tool.hatch.version]
-source = "vcs"
-fallback-version = "0.0.0"
-
-[tool.hatch.build.hooks.vcs]
-version-file = "liuyao/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["liuyao"]

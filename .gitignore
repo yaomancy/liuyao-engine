@@ -13,8 +13,5 @@ dist/
 .v/
 venv/
 
-# hatch-vcs writes this during an editable install / build
-liuyao/_version.py
-
 # OS
 .DS_Store
