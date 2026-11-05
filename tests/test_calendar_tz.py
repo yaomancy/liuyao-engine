@@ -6,6 +6,8 @@
 """
 import datetime
 
+import pytest
+
 from liuyao.calendar import GAN, ZHI, GanZhi, compute_four_pillars
 
 BEIJING = 480      # 东八区偏移（本地=UTC+offset）
@@ -73,3 +75,33 @@ def test_default_offset_equivalent_to_beijing():
         default = compute_four_pillars(y, m, d, h, mi)
         explicit = compute_four_pillars(y, m, d, h, mi, 480)
         assert str(default) == str(explicit), f"缺省≠显式480 @ {y}-{m}-{d}"
+
+
+# 立春 2026-02-04 04:01:51：04:01 仍丑月，04:02 已寅月。
+_LICHUN_BEFORE = datetime.datetime(2026, 2, 4, 4, 1)
+_LICHUN_AFTER = datetime.datetime(2026, 2, 4, 4, 2)
+
+
+@pytest.mark.parametrize("offset", [480, 0, -300, 330, 345, -720, 840])
+@pytest.mark.parametrize(
+    "beijing, year, month",
+    [
+        (_LICHUN_BEFORE, "乙巳", "己丑"),
+        (_LICHUN_AFTER, "丙午", "庚寅"),
+    ],
+)
+def test_tz_offsets_share_jieqi_minute(offset, beijing, year, month):
+    """同一绝对瞬间跨时区（含 ±12/14 与 30/45 分偏移）年/月柱相同。
+
+    日柱/时柱跟当地墙钟，与「把同一组钟面数字当作东八区」的结果一致。
+    """
+    local = beijing - datetime.timedelta(minutes=BEIJING - offset)
+    fp = compute_four_pillars(
+        local.year, local.month, local.day, local.hour, local.minute, offset,
+    )
+    wall = compute_four_pillars(
+        local.year, local.month, local.day, local.hour, local.minute,
+    )
+    assert _s(fp.year) == year and _s(fp.month) == month
+    assert _s(fp.day) == _s(wall.day)
+    assert _s(fp.hour) == _s(wall.hour)

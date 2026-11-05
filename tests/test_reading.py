@@ -83,6 +83,8 @@ def test_build_reading_qian_caiyun():
 
     yong = r["assessment"]["用神"]
     assert yong["wangShuai"] == "死" and yong["月破"] is True and yong["得日"] is True
+    # 申月、用神妻财木：月建为木之绝，无入墓（日辰寅不是墓库）
+    assert yong["relations"] == {"绝": True, "长生态": {"月": "绝"}}
     assert r["assessment"]["原神"]["liuQin"] == "子孙"
     assert r["assessment"]["原神"]["wangShuai"] == "相"
     assert r["assessment"]["忌神"]["liuQin"] == "兄弟"

@@ -2,12 +2,70 @@
 
 全部为五行·地支·纳甲的确定关系（查表），只标事实、不下吉凶；神煞/刑害不入此层。
 十二长生锁定【水土同宫·长生在申】（六爻主流，与《增删卜易》断法一致）。
+
+返回值是普通 dict，形状由本模块的 TypedDict 固定，并与
+`cases/hexagram-json-contract.md` 第五节对齐。键缺省即该事实不成立。
 """
 from __future__ import annotations
 
+from typing import Literal, TypedDict
+
 from .calendar import ZHI
+from .hexagram import HexagramChart
 
 _Z = {c: i for i, c in enumerate(ZHI)}   # 地支 → 索引
+
+ChangShengPoint = Literal["长生", "帝旺", "墓", "绝"]
+HeKind = Literal["日合", "月合"]
+SanHeExtent = Literal["全", "半"]
+
+
+class LineRelation(TypedDict, total=False):
+    """逐爻关系。只收录成立的键；伏吟/反吟/动合的值恒为 True。"""
+
+    伏吟: Literal[True]
+    反吟: Literal[True]
+    合: list[HeKind]
+    动合: Literal[True]
+
+
+class SanHeJu(TypedDict):
+    """三合局一条。成局「全」=三支齐，「半」=中神加一支。"""
+
+    五行: str
+    成局: SanHeExtent
+    含动: bool
+
+
+class GuaLayerRelations(TypedDict):
+    """卦层关系。反吟/伏吟取值为 无 / 内卦 / 外卦 / 内卦+外卦（先内后外）。"""
+
+    反吟: str
+    伏吟: str
+    六合: bool
+    三合: list[SanHeJu]
+
+
+class RuMu(TypedDict):
+    """入墓途径。type 由「日」「动」「化」按此顺序去重拼接。"""
+
+    type: str
+
+
+class ChangShengTai(TypedDict, total=False):
+    """长生要点。只保留日、月里真正落到长生/帝旺/墓/绝的一侧。"""
+
+    日: ChangShengPoint
+    月: ChangShengPoint
+
+
+class YongRelations(TypedDict, total=False):
+    """用神生旺墓绝。随鬼入墓 / 绝仅在成立时出现，值恒为 True。"""
+
+    入墓: RuMu
+    随鬼入墓: Literal[True]
+    绝: Literal[True]
+    长生态: ChangShengTai
 
 
 def _i(zhi: str) -> int:
@@ -37,7 +95,7 @@ _SANHE = {
 }
 
 # 十二长生四要点：五行 → {长生, 帝旺, 墓, 绝} 地支索引（水土同宫）
-_CHANGSHENG = {
+_CHANGSHENG: dict[str, dict[ChangShengPoint, int]] = {
     "木": {"长生": 11, "帝旺": 3, "墓": 7, "绝": 8},
     "火": {"长生": 2, "帝旺": 6, "墓": 10, "绝": 11},
     "金": {"长生": 5, "帝旺": 9, "墓": 1, "绝": 2},
@@ -46,7 +104,7 @@ _CHANGSHENG = {
 }
 
 
-def changsheng_state(wuxing: str, zhi_idx: int) -> str | None:
+def changsheng_state(wuxing: str, zhi_idx: int) -> ChangShengPoint | None:
     """该五行在该地支的要点态：长生/帝旺/墓/绝，否则 None。"""
     for state, idx in _CHANGSHENG.get(wuxing, {}).items():
         if idx == zhi_idx:
@@ -63,15 +121,20 @@ def jue_branch(wuxing: str) -> int | None:
 
 
 # ── 反吟伏吟 / 合：逐爻 ───────────────────────────────────
-def line_relations(primary, bian, moving_set: set[int],
-                   day_zhi: int, month_branch: int) -> dict[int, dict]:
+def line_relations(
+    primary: HexagramChart,
+    bian: HexagramChart | None,
+    moving_set: set[int],
+    day_zhi: int,
+    month_branch: int,
+) -> dict[int, LineRelation]:
     """每爻关系：反吟/伏吟（动爻 本↔变）+ 合（逢日/月合、动爻相合）。返回 {pos: {...}}。"""
-    out: dict[int, dict] = {}
+    out: dict[int, LineRelation] = {}
     movers = sorted(moving_set)
     for y in primary.yaos:
         p = y.position
         zi = _i(y.zhi)
-        rel: dict = {}
+        rel: LineRelation = {}
         # 反吟伏吟（仅动爻，需变卦）
         if bian is not None and p in moving_set:
             bz = _i(bian.yaos[p - 1].zhi)
@@ -80,7 +143,7 @@ def line_relations(primary, bian, moving_set: set[int],
             elif bz == chong(zi):
                 rel["反吟"] = True
         # 合：逢日/月
-        he = []
+        he: list[HeKind] = []
         if is_liuhe(zi, day_zhi):
             he.append("日合")
         if is_liuhe(zi, month_branch):
@@ -99,9 +162,13 @@ def line_relations(primary, bian, moving_set: set[int],
 
 
 # ── 反吟伏吟 / 合化：卦层 ─────────────────────────────────
-def gua_relations(primary, bian, moving_set: set[int]) -> dict:
+def gua_relations(
+    primary: HexagramChart,
+    bian: HexagramChart | None,
+    moving_set: set[int],
+) -> GuaLayerRelations:
     """卦层：反吟/伏吟（内外卦三爻皆动且整体同支/相冲）+ 六合卦 + 三合局。"""
-    res: dict = {"反吟": "无", "伏吟": "无", "六合": False, "三合": []}
+    res: GuaLayerRelations = {"反吟": "无", "伏吟": "无", "六合": False, "三合": []}
     # 反吟伏吟：内卦(1-3)/外卦(4-6)——该宫【凡动之爻】皆同支=卦伏吟、皆相冲=卦反吟
     # （乾↔震互化纳甲地支全同，仅动 2 爻亦成立，故按"动爻是否一致"判，不强求三爻皆动）
     if bian is not None:
@@ -134,16 +201,23 @@ def gua_relations(primary, bian, moving_set: set[int]) -> dict:
 
 
 # ── 用神：入墓 / 随鬼入墓 / 绝 / 长生态 ───────────────────
-def yong_relations(primary, bian, yong_pos: int | None, yong_wx: str,
-                   moving_set: set[int], day_zhi: int, month_branch: int) -> dict:
-    """用神生旺墓绝相关事实。yong_pos 为 None（伏藏）时返回空。"""
+def yong_relations(
+    primary: HexagramChart,
+    bian: HexagramChart | None,
+    yong_pos: int | None,
+    yong_wx: str,
+    moving_set: set[int],
+    day_zhi: int,
+    month_branch: int,
+) -> YongRelations:
+    """用神生旺墓绝相关事实。yong_pos 为 None（伏藏）或五行为空时返回空。"""
     if yong_pos is None or not yong_wx:
         return {}
-    rel: dict = {}
+    rel: YongRelations = {}
     mu = mu_branch(yong_wx)
     jue = jue_branch(yong_wx)
     # 入墓：日墓 / 动墓 / 化墓
-    types = []
+    types: list[str] = []
     sui_gui = False
     if mu is not None:
         if day_zhi == mu:
@@ -167,9 +241,14 @@ def yong_relations(primary, bian, yong_pos: int | None, yong_wx: str,
     # 绝（对日辰或月建）
     if jue is not None and (day_zhi == jue or month_branch == jue):
         rel["绝"] = True
-    # 长生态（要点）：对日、对月
-    state = {"日": changsheng_state(yong_wx, day_zhi),
-             "月": changsheng_state(yong_wx, month_branch)}
-    if state["日"] or state["月"]:
-        rel["长生态"] = {k: v for k, v in state.items() if v}
+    # 长生态（要点）：对日、对月。只保留落到四要点上的一侧。
+    cs: ChangShengTai = {}
+    day_state = changsheng_state(yong_wx, day_zhi)
+    month_state = changsheng_state(yong_wx, month_branch)
+    if day_state is not None:
+        cs["日"] = day_state
+    if month_state is not None:
+        cs["月"] = month_state
+    if cs:
+        rel["长生态"] = cs
     return rel

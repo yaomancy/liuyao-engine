@@ -85,6 +85,8 @@ def _xunkong(day: GanZhi) -> tuple[int, int]:
 
 
 _SXTWL_REF_OFFSET = 480  # sxtwl 节气/干支参照系 = 东经120°北京时（UTC+8），实证见 fix-overseas-casttime-tz
+_TZ_OFFSET_MIN = -12 * 60  # 民用时区下界 UTC−12:00
+_TZ_OFFSET_MAX = 14 * 60   # 民用时区上界 UTC+14:00
 
 
 def ganzhi_from_str(s: str) -> GanZhi:
@@ -119,8 +121,11 @@ def compute_four_pillars(
 ) -> FourPillars:
     """由起卦的本地时刻 + 时区偏移计算四柱干支 + 旬空。
 
-    tz_offset_minutes：本地相对 UTC 的偏移（本地 = UTC + offset；东八区 +480、
-        纽约冬季 -300）。缺省 +480 等价于"按北京时间处理"，与既往行为一致。
+    minute：0–59，缺省 0。
+    tz_offset_minutes：本地相对 UTC 的偏移分钟（本地 = UTC + offset；东八区 +480、
+        纽约冬季 -300）。闭区间 UTC−12:00（-720）至 UTC+14:00（+840），
+        允许 30/45 分等非整点偏移。缺省 +480 等价于"按北京时间处理"，
+        与既往行为一致。越界的 minute / hour / tz_offset_minutes 抛 ValueError。
 
     法度（见 fix-overseas-casttime-tz/design）：
     - 日柱/时柱取**求测人当地墙钟**（"当时当地"）：子时换日 hour>=23 按次日，
@@ -130,6 +135,13 @@ def compute_four_pillars(
     """
     if not (0 <= hour <= 23):
         raise ValueError(f"hour 必须在 0–23，收到 {hour}")
+    if not (0 <= minute <= 59):
+        raise ValueError(f"minute 必须在 0–59，收到 {minute}")
+    if not (_TZ_OFFSET_MIN <= tz_offset_minutes <= _TZ_OFFSET_MAX):
+        raise ValueError(
+            f"tz_offset_minutes 必须在 {_TZ_OFFSET_MIN}–{_TZ_OFFSET_MAX}"
+            f"（UTC−12 到 UTC+14），收到 {tz_offset_minutes}"
+        )
 
     # 日柱/时柱：当地墙钟 + 子时换日（23:00 起算次日，子初换日）——不随时区换算
     eff = datetime.date(year, month, day)

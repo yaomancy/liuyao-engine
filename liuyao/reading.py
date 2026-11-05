@@ -25,6 +25,7 @@ from .hexagram import (
     cast_chart,
 )
 from .relations import (
+    YongRelations,
     gua_relations,
     line_relations,
     yong_relations,
@@ -136,7 +137,7 @@ def build_reading(
     # 断法关系（engine-fadu-extend）：反吟伏吟 / 合（逐爻）+ 卦层 / 用神生旺墓绝
     rel_by_pos = line_relations(primary, bian, moving_set, day_zhi, month_branch)
     gua_rel = gua_relations(primary, bian, moving_set)
-    yong_rel = {}
+    yong_rel: YongRelations = {}
     if yong_pos is not None:
         yong_rel = yong_relations(primary, bian, yong_pos,
                                   primary.yaos[yong_pos - 1].wuxing,

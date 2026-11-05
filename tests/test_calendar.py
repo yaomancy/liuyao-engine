@@ -1,7 +1,12 @@
 """历法层单测：四柱 / 节气月建 / 子时换日 / 旬空 / 交叉验证。
 
 干支真值以 sxtwl + lunar-python 双实现交叉印证为准（见 reference/classics/SOURCES.md）。
+交节按秒比较儒略日：节气落在某分钟的若干秒时，该分钟的整分已经过节。
+lunar-python 的月柱有时晚一分钟，这种行只锁引擎自身结果。
 """
+import pytest
+from lunar_python import Solar
+
 from liuyao.calendar import (
     GAN,
     ZHI,
@@ -102,3 +107,84 @@ def test_jieqi_precise_boundary():
     assert _s(before.year) == "癸卯"
     assert ZHI[after.month_branch] == "寅"
     assert _s(after.year) == "甲辰"
+
+
+# ── 2.6 交节精确到分钟 / 子时精确到 23:00 ─────────────────
+# lunar_ok：该分钟两库月柱/年柱一致。立春落在 xx:26:53、xx:01:51 时，
+# 引擎在下一分钟即换月，lunar-python 再晚一分钟，故该行不跟 lunar。
+@pytest.mark.parametrize(
+    "stamp, year, month, lunar_ok",
+    [
+        ((2024, 2, 4, 16, 26), "癸卯", "乙丑", True),    # 立春 16:26:53 前
+        ((2024, 2, 4, 16, 27), "甲辰", "丙寅", False),   # 秒级已过节
+        ((2024, 2, 4, 16, 28), "甲辰", "丙寅", True),
+        ((2026, 2, 4, 4, 1), "乙巳", "己丑", True),      # 立春 04:01:51 前
+        ((2026, 2, 4, 4, 2), "丙午", "庚寅", False),
+        ((2026, 2, 4, 4, 3), "丙午", "庚寅", True),
+        ((2025, 2, 3, 22, 10), "甲辰", "丁丑", True),    # 立春 22:10:13，仍在子时前
+        ((2025, 2, 3, 22, 11), "乙巳", "戊寅", True),
+        ((2026, 8, 7, 19, 42), "丙午", "乙未", True),    # 立秋 19:42:25 前
+        ((2026, 8, 7, 19, 43), "丙午", "丙申", True),
+        ((2024, 6, 21, 4, 50), "甲辰", "庚午", True),    # 夏至是中气，月柱不换
+        ((2024, 6, 21, 4, 51), "甲辰", "庚午", True),
+    ],
+)
+def test_jieqi_minute_boundary(stamp, year, month, lunar_ok):
+    y, m, d, h, mi = stamp
+    fp = compute_four_pillars(y, m, d, h, mi)
+    assert _s(fp.year) == year
+    assert _s(fp.month) == month
+    if lunar_ok:
+        lunar = Solar.fromYmdHms(y, m, d, h, mi, 0).getLunar()
+        assert lunar.getYearInGanZhiExact() == year
+        assert lunar.getMonthInGanZhiExact() == month
+
+
+@pytest.mark.parametrize(
+    "hour, minute, day, hour_gz",
+    [
+        (22, 59, "戊午", "癸亥"),  # 亥时，仍是当日
+        (23, 0, "己未", "甲子"),   # 23:00 整起算次日
+        (23, 1, "己未", "甲子"),
+        (0, 0, "戊午", "壬子"),    # 零点仍属当日子时，不回到前一日
+    ],
+)
+def test_zi_hour_exact_minute(hour, minute, day, hour_gz):
+    """2026-08-12：子时换日卡在 23:00，而不是 22:59 或 00:00。"""
+    fp = compute_four_pillars(2026, 8, 12, hour, minute)
+    assert _s(fp.day) == day
+    assert _s(fp.hour) == hour_gz
+
+
+@pytest.mark.parametrize(
+    "hour, minute, year, month, day, hour_gz",
+    [
+        (22, 59, "乙巳", "戊寅", "癸卯", "癸亥"),
+        (23, 0, "乙巳", "戊寅", "甲辰", "甲子"),
+    ],
+)
+def test_zi_rollover_keeps_jieqi_month(hour, minute, year, month, day, hour_gz):
+    """2025-02-03 立春在 22:11 已过，23:00 只换日柱，年/月柱停在寅月。"""
+    fp = compute_four_pillars(2025, 2, 3, hour, minute)
+    assert _s(fp.year) == year
+    assert _s(fp.month) == month
+    assert _s(fp.day) == day
+    assert _s(fp.hour) == hour_gz
+
+
+@pytest.mark.parametrize("minute", [-1, 60, 99])
+def test_minute_out_of_range(minute):
+    with pytest.raises(ValueError, match="minute"):
+        compute_four_pillars(2026, 8, 12, 10, minute)
+
+
+@pytest.mark.parametrize("hour", [-1, 24])
+def test_hour_out_of_range(hour):
+    with pytest.raises(ValueError, match="hour"):
+        compute_four_pillars(2026, 8, 12, hour)
+
+
+@pytest.mark.parametrize("offset", [-721, 841, 10_000])
+def test_tz_offset_out_of_range(offset):
+    with pytest.raises(ValueError, match="tz_offset_minutes"):
+        compute_four_pillars(2026, 8, 12, 10, 0, offset)
