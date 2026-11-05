@@ -1,5 +1,5 @@
 """卦页事实与 slug 映射单测（§1）。"""
-from liuyao.gua_page import gua_page_facts
+from liuyao.gua_page import gua_index_items, gua_page_facts
 from liuyao.gua_slug import (
     GUA_SLUG,
     SLUG_BY_NAME,
@@ -7,7 +7,10 @@ from liuyao.gua_slug import (
     slug_to_bits,
 )
 from liuyao.guaxiang import GUAXIANG
-from liuyao.hexagram import GUA64, cast_chart
+from liuyao.hexagram import GUA64, PALACE_WUXING, cast_chart
+
+_JINGFANG = ["本宫", "一世", "二世", "三世", "四世", "五世", "游魂", "归魂"]
+_PALACES = ["乾", "坎", "艮", "震", "巽", "离", "坤", "兑"]
 
 _QIAN = "111111"  # 乾为天
 
@@ -86,3 +89,21 @@ def test_unknown_bits_raises():
     import pytest
     with pytest.raises(KeyError):
         gua_page_facts("999999")
+
+
+def test_index_groups_follow_jingfang_order():
+    """八宫按乾坎艮震巽离坤兑，宫内按本宫→归魂，覆盖全部 64 卦。"""
+    groups = gua_index_items()
+    assert [palace for palace, _, _ in groups] == _PALACES
+    seen: list[str] = []
+    for palace, wuxing, items in groups:
+        assert wuxing == PALACE_WUXING[palace]
+        assert [item["gua_type"] for item in items] == _JINGFANG
+        assert len(items) == 8
+        for item in items:
+            assert item["bits"] in GUA64
+            assert item["name"] == GUA64[item["bits"]]
+            assert item["slug"] == bits_to_slug(item["bits"])
+            seen.append(item["bits"])
+    assert set(seen) == set(GUA64)
+    assert len(seen) == 64
