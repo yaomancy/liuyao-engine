@@ -102,11 +102,21 @@ class ForceEntry:
     andong: bool       # 暗动（静爻被日辰冲）
 
 
+_ADVANCING_BRANCHES = frozenset({
+    ("亥", "子"), ("寅", "卯"), ("巳", "午"), ("申", "酉"),
+    ("丑", "辰"), ("辰", "未"), ("未", "戌"),
+})  # 《增删卜易·进神退神章》；反向为退神。
+
+
 def _huitou(ben_wx: str, ben_zhi: int, bian_wx: str, bian_zhi: int) -> str | None:
     """动爻与变爻的关系：同五行论化进/化退，异五行论回头生克。"""
     if ben_wx == bian_wx:
-        # 同五行：地支递进为进神、递退为退神
-        return "化进" if (bian_zhi - ben_zhi) % 12 in (1, 2) else "化退"
+        before, after = ZHI[ben_zhi], ZHI[bian_zhi]
+        if (before, after) in _ADVANCING_BRANCHES:
+            return "化进"
+        if (after, before) in _ADVANCING_BRANCHES:
+            return "化退"
+        return None
     if _SHENG[bian_wx] == ben_wx:
         return "回头生"
     if _KE[bian_wx] == ben_wx:
