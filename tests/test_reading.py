@@ -15,7 +15,7 @@ from liuyao.analysis import (
     select_yongshen,
     wangshuai,
 )
-from liuyao.calendar import GAN, ZHI, FourPillars, GanZhi
+from liuyao.calendar import GAN, ZHI, FourPillars, GanZhi, four_pillars_from_ganzhi
 from liuyao.hexagram import cast_chart
 from liuyao.reading import build_reading
 
@@ -47,10 +47,45 @@ def test_huitou_kefan():
     assert _huitou("金", ZHI.index("酉"), "火", ZHI.index("午")) == "回头克"
 
 
-def test_huitou_jinshen():
-    """同五行递进 → 化进（寅化卯）。"""
-    assert _huitou("木", ZHI.index("寅"), "木", ZHI.index("卯")) == "化进"
-    assert _huitou("木", ZHI.index("卯"), "木", ZHI.index("寅")) == "化退"
+@pytest.mark.parametrize(
+    ("element", "before", "after"),
+    [
+        ("水", "亥", "子"), ("木", "寅", "卯"), ("火", "巳", "午"),
+        ("金", "申", "酉"), ("土", "丑", "辰"), ("土", "辰", "未"),
+        ("土", "未", "戌"),
+    ],
+)
+def test_huitou_jin_tui_shen(element, before, after):
+    assert _huitou(element, ZHI.index(before), element, ZHI.index(after)) == "化进"
+    assert _huitou(element, ZHI.index(after), element, ZHI.index(before)) == "化退"
+
+
+@pytest.mark.parametrize("element,branches", [
+    ("水", "亥子"), ("木", "寅卯"), ("火", "巳午"), ("金", "申酉"), ("土", "丑辰未戌"),
+])
+def test_huitou_unlisted_same_element_is_neutral(element, branches):
+    for i, before in enumerate(branches):
+        for j, after in enumerate(branches):
+            if abs(i - j) != 1:
+                assert _huitou(element, ZHI.index(before), element, ZHI.index(after)) is None
+
+
+def test_huitou_cross_element_relations_unchanged():
+    assert _huitou("木", ZHI.index("寅"), "水", ZHI.index("亥")) == "回头生"
+    assert _huitou("木", ZHI.index("寅"), "火", ZHI.index("巳")) is None
+
+
+def test_huitou_classic_jie_to_xu():
+    # 《增删卜易·进神退神章》：戌月癸巳日，丑土官鬼动化辰土进神。
+    reading = build_reading(
+        category="事业", text="古籍卦例", bits="110010", moving={3: "老阴"},
+        four_pillars=four_pillars_from_ganzhi("甲子", "甲戌", "癸巳"),
+    )
+    assert reading["primary"]["name"] == "水泽节"
+    assert reading["changed"]["name"] == "水天需"
+    assert reading["primary"]["lines"][2]["纳甲"]["支"] == "丑"
+    assert reading["changed"]["lines"][2]["纳甲"]["支"] == "辰"
+    assert reading["assessment"]["用神"]["huiTou"] == "化进"
 
 
 # ── 5.1 用神类别映射 ─────────────────────────────────────
